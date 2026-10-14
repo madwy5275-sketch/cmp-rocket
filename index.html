@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head>
-<!-- cmp-web:Version 2026-10-14 09:48 UTC -->
+<!-- cmp-web:Version 2026-10-14 12:15 UTC -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
@@ -252,7 +252,10 @@ body.phone #viewDash .bar .row{display:flex; gap:6px; flex-wrap:nowrap; overflow
 body.phone #viewDash .bar .btn{padding:7px 11px; font-size:13.5px; white-space:nowrap}
 body.phone #dashFull, body.phone #dashNote{display:none}
 body.phone .dash-frame{height:calc(100vh - 150px); height:calc(100dvh - 150px); min-height:420px; margin:0 -14px; width:calc(100% + 28px); border:0; border-radius:0}
-body.phone #sumFrame{margin-left:-14px; margin-right:-14px; width:calc(100% + 28px); border-radius:0; border-left:0; border-right:0}
+body.phone #liveLog, .ask-item, .ask-a{min-width:0; max-width:100%}
+.ask-a{overflow-x:auto; -webkit-overflow-scrolling:touch}
+details.ask-how pre{overflow-x:auto; max-width:100%}
+#sumFrame{margin-left:-14px; margin-right:-14px; width:calc(100% + 28px); border-radius:0; border-left:0; border-right:0}
 body.phone .sum-box{padding:12px}
 body.phone .maps{grid-template-columns:1fr !important}
 body.phone table{font-size:13.5px}
@@ -10560,7 +10563,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       <div class="who"><button class="linkbtn" id="viewMode" title="Switch between the phone and laptop layouts">Phone view</button></div>
       <div class="engine" aria-live="polite"><span class="dot busy" id="engDot"></span><span id="engState">Engine starting</span></div>
       <div class="engine" id="syncLine" hidden=""><span class="dot" id="syncDot"></span><span id="syncState"></span></div>
-      <div class="engine muted" id="appVer" style="font-size:12px">Version 2026-10-14 09:48 UTC</div>
+      <div class="engine muted" id="appVer" style="font-size:12px">Version 2026-10-14 12:15 UTC</div>
     </div>
   </header>
   <div class="banner" id="banner" hidden=""></div>
@@ -11275,10 +11278,11 @@ $("loginForm").onsubmit = async e => {
       : "The username or password is incorrect.";
     $("lPass").value = ""; $("lPass").focus(); rememberSet(null); return; }
   rememberSet($("lRemember").checked ? $("lUser").value.trim() : null, $("lRemember").checked ? p : null);
+  sessSet($("lUser").value.trim(), p);
   AUTH = {rec:used, key};
   await startSession(payload);
 };
-$("signOut").onclick = () => location.reload();
+$("signOut").onclick = () => { sessSet(null); try { sessionStorage.setItem("cmp-rocket-signedout", "1"); } catch {} location.reload(); };
 
 async function startSession(payload){
   SESSION = {role:payload.role, user:payload.user, name:payload.name || payload.user, payload};
@@ -14640,5 +14644,26 @@ async function phoneDash(d, force, plainShow){
   pagesSel.onchange = () => { if (phoneRep) phoneRep.setPage(pagesSel.value).catch(() => {}); };
 }
 $("dashReload").onclick = () => { shownDash = null; showDash(true); };
+
+/* ---------- stay signed in on this tab ---------- */
+/* Phones often reload a page in the background (switching apps, the Power BI sign-in pop-up, low memory).
+   The sign-in is kept for this tab only (12 hours), and "Remember me" signs in automatically. */
+function sessKey(){ return "cmp-rocket-session:" + rememberKey(); }
+function sessSet(u, p){ try { if (u) sessionStorage.setItem(sessKey(), JSON.stringify({u, p, exp:Date.now() + 12 * 3600e3})); else sessionStorage.removeItem(sessKey()); } catch {} }
+function sessGet(){ try { const v = JSON.parse(sessionStorage.getItem(sessKey()) || "null"); return v && v.u && v.p && v.exp > Date.now() ? v : null; } catch { return null; } }
+(function autoSignIn(){
+  if (!VAULT || $("loginForm").hidden) return;
+  let skip = false; try { skip = sessionStorage.getItem("cmp-rocket-signedout") === "1"; sessionStorage.removeItem("cmp-rocket-signedout"); } catch {}
+  if (skip) return;
+  const t0 = Date.now();
+  const tick = () => {
+    if (SESSION) return;
+    if ($("lBtn").disabled){ if (Date.now() - t0 < 60000) setTimeout(tick, 300); return; }
+    const s = sessGet() || rememberGet(); if (!s || !s.p) return;
+    $("lUser").value = s.u; $("lPass").value = s.p;
+    const f = $("loginForm"); if (f.requestSubmit) f.requestSubmit(); else $("lBtn").click();
+  };
+  tick();
+})();
 
 </script></body></html>
