@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head>
-<!-- cmp-web:Version 2026-10-14 12:15 UTC -->
+<!-- cmp-web:Version 2026-10-14 13:11 UTC -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
@@ -10563,7 +10563,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       <div class="who"><button class="linkbtn" id="viewMode" title="Switch between the phone and laptop layouts">Phone view</button></div>
       <div class="engine" aria-live="polite"><span class="dot busy" id="engDot"></span><span id="engState">Engine starting</span></div>
       <div class="engine" id="syncLine" hidden=""><span class="dot" id="syncDot"></span><span id="syncState"></span></div>
-      <div class="engine muted" id="appVer" style="font-size:12px">Version 2026-10-14 12:15 UTC</div>
+      <div class="engine muted" id="appVer" style="font-size:12px">Version 2026-10-14 13:11 UTC</div>
     </div>
   </header>
   <div class="banner" id="banner" hidden=""></div>
@@ -14647,10 +14647,11 @@ $("dashReload").onclick = () => { shownDash = null; showDash(true); };
 
 /* ---------- stay signed in on this tab ---------- */
 /* Phones often reload a page in the background (switching apps, the Power BI sign-in pop-up, low memory).
-   The sign-in is kept for this tab only (12 hours), and "Remember me" signs in automatically. */
+   The sign-in is kept on this device for 12 hours, and "Remember me" signs in automatically. */
 function sessKey(){ return "cmp-rocket-session:" + rememberKey(); }
-function sessSet(u, p){ try { if (u) sessionStorage.setItem(sessKey(), JSON.stringify({u, p, exp:Date.now() + 12 * 3600e3})); else sessionStorage.removeItem(sessKey()); } catch {} }
-function sessGet(){ try { const v = JSON.parse(sessionStorage.getItem(sessKey()) || "null"); return v && v.u && v.p && v.exp > Date.now() ? v : null; } catch { return null; } }
+// kept on this device (not only this tab): opening the link again from WhatsApp, a new tab or the Home Screen icon stays signed in
+function sessSet(u, p){ try { sessionStorage.removeItem(sessKey()); if (u) localStorage.setItem(sessKey(), JSON.stringify({u, p, exp:Date.now() + 12 * 3600e3})); else localStorage.removeItem(sessKey()); } catch {} }
+function sessGet(){ try { const v = JSON.parse(localStorage.getItem(sessKey()) || "null"); if (v && v.u && v.p && v.exp > Date.now()) return v; localStorage.removeItem(sessKey()); return null; } catch { return null; } }
 (function autoSignIn(){
   if (!VAULT || $("loginForm").hidden) return;
   let skip = false; try { skip = sessionStorage.getItem("cmp-rocket-signedout") === "1"; sessionStorage.removeItem("cmp-rocket-signedout"); } catch {}
