@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- cmp-signin-4 -->
+<!-- cmp-signin-5 -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Power BI sign-in</title>
 <style>:root{--paper:#EEF2F5;--ink:#1B2A3A;--steel:#5B6B7C;--go:#2E7D5B;--stop:#B3261E}@media (prefers-color-scheme: dark){:root{--paper:#0F1720;--ink:#E6EDF3;--steel:#93A3B3}}
@@ -77,7 +77,7 @@ const ao="|";function so(e){const{skus:t,libraryName:r,libraryVersion:n,extensio
 <script>
 const SCOPES = ["Dataset.Read.All","Report.Read.All","Workspace.Read.All"].map(s => "https://analysis.windows.net/powerbi/api/" + s);
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ALLOWED = o => o === "null" || /^http:\/\/localhost(:\d+)?$/.test(o);
+const ALLOWED = o => o === "null" || o === location.origin || /^http:\/\/localhost(:\d+)?$/.test(o);
 const st = document.getElementById("st"); const say = (t, c) => { st.textContent = t; st.className = c || ""; };
 let pca = null, ready = null, requester = null, working = false, done = false;
 function init(cfg){
